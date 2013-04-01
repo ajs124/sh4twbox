@@ -1,0 +1,16 @@
+# Maintainer: Daniel YC Lin <dlin.tw at gmail>
+
+pkgname=gcc
+pkgver=4.2.4.76
+pkgrel=1
+pkgdesc="STLinux The GNU Compiler Collection"
+arch=(sh4)
+license=('GPL' 'LGPL' 'FDL' 'custom')
+url="http://gcc.gnu.org"
+source=(http://ftp.stlinux.com/pub/stlinux/2.3/updates/RPMS/sh4/stlinux23-sh4-gcc-4.2.4-76.sh4.rpm)
+
+package() {
+  cp -r opt/STM/STLinux-2.3/devkit/sh4/target/usr $pkgdir
+  rm $pkgdir/usr/lib/libssp.so*
+}
+md5sums=('84c2b547ffae7a287ee7cc127fa3f0db')

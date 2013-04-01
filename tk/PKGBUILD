@@ -1,0 +1,12 @@
+# $Id: PKGBUILD 173851 2012-12-25 00:34:54Z foutrelis $
+# Maintainer: Allan McRae <allan@archlinux.org>
+# Contributor: Judd Vinet <jvinet@zeroflux.org>
+
+pkgname=tk
+pkgver=8.5.8
+pkgrel=1
+pkgdesc="dummy A windowing toolkit for use with tcl"
+arch=('sh4')
+url="http://tcl.sourceforge.net/"
+license=('custom')
+depends=("tcl=${pkgver}" 'libxss' 'libxft')

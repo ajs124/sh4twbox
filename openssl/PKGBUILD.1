@@ -1,0 +1,89 @@
+# $Id: PKGBUILD 178169 2013-02-17 17:21:40Z pierre $
+# Maintainer: Pierre Schmitz <pierre@archlinux.de>
+
+pkgname=openssl
+_ver=1.0.1e
+_dver=1.0.1e-1
+# use a pacman compatible version scheme
+pkgver=${_ver/[a-z]/.${_ver//[0-9.]/}}
+#pkgver=$_ver
+pkgrel=3
+pkgdesc='The Open Source toolkit for Secure Sockets Layer and Transport Layer Security'
+arch=('i686' 'x86_64' sh4)
+url='https://www.openssl.org'
+license=('custom:BSD')
+depends=('perl')
+optdepends=('ca-certificates')
+options=('!makeflags')
+backup=('etc/ssl/openssl.cnf')
+source=("https://www.openssl.org/source/${pkgname}-${_ver}.tar.gz"
+        "https://www.openssl.org/source/${pkgname}-${_ver}.tar.gz.asc"
+        "http://debian.nctu.edu.tw/debian/pool/main/o/openssl/openssl_$_dver.debian.tar.gz"
+        'no-rpath.patch'
+        'ca-dir.patch')
+md5sums=('66bf6f10f060d561929de96f9dfe5b8c'
+         'e18847df48d39416f4ca5064887a2e28'
+         'dc78d3d06baffc16217519242ce92478'
+         '3bf51be3a1bbd262be46dc619f92aa90')
+
+build() {
+	cd $srcdir/$pkgname-$_ver
+       
+	# remove rpath: http://bugs.archlinux.org/task/14367
+	#echo "-- patch -p0 -i $srcdir/no-rpath.patch"
+	#patch -p0 -i $srcdir/no-rpath.patch
+	# set ca dir to /etc/ssl by default
+	echo "--patch -p0 -i $srcdir/ca-dir.patch"
+	patch -p0 -i $srcdir/ca-dir.patch
+
+	#sed -i 's/rehash_pod.patch/#&/' $srcdir/debian/patches/series
+        #sed -i 's/version-script.patch/#&/' $srcdir/debian/patches/series
+        #sed -i 's/ssltest_no_sslv2.patch/#&/' $srcdir/debian/patches/series
+        sed -i 's/engines-path.patch/#&/' $srcdir/debian/patches/series
+        for _f in $(cat "$srcdir/debian/patches/series" | grep -v '#') ; do    
+          echo "-- patch -Np1 -i" "$srcdir/debian/patches/$_f"
+          patch -Np1 -i "$srcdir/debian/patches/$_f"
+        done
+        sed -i 's/`tempfile`/`mktemp`/' tools/c_rehash.in
+        echo "-- after debian patch"
+	if [ "${CARCH}" == 'x86_64' ]; then
+		openssltarget='linux-x86_64'
+		optflags='enable-ec_nistp_64_gcc_128'
+	elif [ "${CARCH}" == 'i686' ]; then
+		openssltarget='linux-elf'
+		optflags=''
+	elif [ "${CARCH}" == 'sh4' ]; then
+		#openssltarget='debian-sh4'
+		openssltarget=''
+		optflags=''
+	fi
+
+	# mark stack as non-executable: http://bugs.archlinux.org/task/12434
+	./Configure --prefix=/usr --openssldir=/etc/ssl --libdir=lib \
+		shared zlib enable-md2 ${optflags} \
+		"${openssltarget}" \
+		-Wa,--noexecstack "${CFLAGS}" "${LDFLAGS}" debian-sh4
+
+	make depend
+	make
+}
+
+check() {
+	cd $srcdir/$pkgname-$_ver
+	# the test fails due to missing write permissions in /etc/ssl
+	# revert this patch for make test
+	patch -p0 -R -i $srcdir/ca-dir.patch
+	make test
+	patch -p0 -i $srcdir/ca-dir.patch
+}
+
+package() {
+	cd $srcdir/$pkgname-$_ver
+	make INSTALL_PREFIX=$pkgdir MANDIR=/usr/share/man MANSUFFIX=ssl install
+	install -D -m644 LICENSE $pkgdir/usr/share/licenses/$pkgname/LICENSE
+}
+md5sums=('66bf6f10f060d561929de96f9dfe5b8c'
+         'e18847df48d39416f4ca5064887a2e28'
+         '4d58a6f4013f732c7fa610865c4c6d9b'
+         'dc78d3d06baffc16217519242ce92478'
+         '3bf51be3a1bbd262be46dc619f92aa90')

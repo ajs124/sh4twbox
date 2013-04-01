@@ -1,0 +1,11 @@
+# Maintainer: Daniel YC Lin <dlin.tw at gmail>
+
+pkgname=tcl
+pkgver=8.5.8
+pkgrel=3
+pkgdesc="dummy The Tcl scripting language"
+arch=('sh4')
+url="http://tcl.sourceforge.net/"
+license=('custom')
+source=()
+md5sums=()
