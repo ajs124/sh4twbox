@@ -3,8 +3,8 @@
 set -e -u
 
 case "${1:-}" in
-u|d) mode=$1 ;;
-*) echo "Usage:$(basename $0) <u/d> -- u:update d:deploy" ; exit 1 ;;
+u|a|d) mode=$1 ;;
+*) echo "Usage:$(basename $0) <a/u/d> -- a:any u:update d:deploy" ; exit 1 ;;
 esac
 
 split_pkgname_pipe() {  # split x-x-1.3-1.x -> x-x 1.3-1.x
@@ -34,7 +34,15 @@ split_pkgname_pipe() {  # split x-x-1.3-1.x -> x-x 1.3-1.x
   done
 }
 
-for f in *sh4.pkg.tar.xz ; do
+FILES="*sh4.pkg.tar.xz"
+if [ "$mode" = "a" ] ; then
+  mode=u
+  FILES="*any.pkg.tar.xz"
+fi
+for f in $FILES ; do
+  if [ $f = initscripts-2011.12.1-1-any.pkg.tar.xz ] ; then
+    continue
+  fi
   read name ver < <(basename $f .pkg.tar.xz|split_pkgname_pipe)
   echo "To t: $f $name"
   echo scp -i ~/.ssh/id_rsa -P80 "$f" t:web/sh4twbox
