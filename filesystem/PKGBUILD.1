@@ -3,7 +3,7 @@
 
 pkgname=filesystem
 pkgver=2013.01
-pkgrel=3
+pkgrel=3.3
 pkgdesc='Base filesystem'
 arch=(sh4)
 license=('GPL')
@@ -52,7 +52,7 @@ package() {
 	done
 	touch etc/arch-release
 	install -D -m644 ${srcdir}/modprobe.d.usb-load-ehci-first usr/lib/modprobe.d/usb-load-ehci-first.conf
-	install -m755 ${srcdir}/locale.sh etc/profile.d/locale.sh
+	#install -m755 ${srcdir}/locale.sh etc/profile.d/locale.sh
 
 	# setup /var
 	for d in cache/man local opt log/old lib/misc empty; do
@@ -109,30 +109,10 @@ md5sums=('c61f6ac4f6377108e59879f203f18633'
          '1745349eb24ed21b4cfaa6f423bddb76'
          '7bc65f234dfb6abf24e7c3b03e86f4ff'
          'd41d8cd98f00b204e9800998ecf8427e'
-         'b16a4674ccf3a932ff34c6c8393a4f33'
-         '6f48288b6fcaf0065fcb7b0e525413e0'
-         '22518e922891f9359f971f4f5b4e793c'
-         'ffe983034b8004989b8c3df97ec91095'
-         'f3b6ae7db8adffaaa4bffc6099dcbd50'
-         'a8a962370cd0128465d514e6a1f74130'
-         '2e193c4a37245f2323ebe87f1a673563'
-         '3807d07215d9116331fe1cf8feeaa0f8')
-md5sums=('c61f6ac4f6377108e59879f203f18633'
-         '7813c481156f6b280a3ba91fc6236368'
-         '9e4533df61f0c82d6b2e2371f7376282'
-         '4c4540eeb748bf1f71d631b8c1dcf0b3'
-         'f28150d4c0b22a017be51b9f7f9977ed'
-         '6e488ffecc8ba142c0cf7e2d7aeb832e'
-         '1cfd310dff0804a7d21958487c32a3b1'
-         '2ef2429c2c98d0883906aa6f5363be80'
-         '693c97f2c9a519bb97a17008e92c2b74'
-         '1745349eb24ed21b4cfaa6f423bddb76'
-         '7bc65f234dfb6abf24e7c3b03e86f4ff'
-         'd41d8cd98f00b204e9800998ecf8427e'
          '06f5a8c1fe4d31aaf617224e978ff5b1'
          '6f48288b6fcaf0065fcb7b0e525413e0'
          '22518e922891f9359f971f4f5b4e793c'
-         'ffe983034b8004989b8c3df97ec91095'
+         '8938ff743fca3813bc03d98fd500bfca'
          'f3b6ae7db8adffaaa4bffc6099dcbd50'
          'a8a962370cd0128465d514e6a1f74130'
          '2e193c4a37245f2323ebe87f1a673563'
