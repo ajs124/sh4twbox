@@ -4,7 +4,7 @@
 
 pkgname=busybox
 pkgver=1.20.2
-pkgrel=1.2
+pkgrel=1.5
 pkgdesc="Utilities for rescue and embedded systems(binary only)"
 arch=("sh4")
 url="http://www.busybox.net"
@@ -12,7 +12,10 @@ license=('GPL')
 makedepends=("make" "gcc" "sed" "ncurses")
 source=($url/downloads/$pkgname-$pkgver.tar.bz2
 	config
-	busybox_rmlink.sh)
+	busybox_rmlink.sh
+	mdev.conf
+        default.script
+	)
 provides=(vi cron sed which dhcpcd)
 install=busybox.install
 
@@ -34,6 +37,12 @@ package() {
   mkdir -p $pkgdir/bin
   cp -r pkg/* $pkgdir
   cp $srcdir/busybox_rmlink.sh $pkgdir/bin
+
+  mkdir -p $pkgdir/etc
+  cp $srcdir/mdev.conf $pkgdir/etc
+
+  mkdir -p $pkgdir/usr/share/udhcpc
+  cp $srcdir/default.script $pkgdir/usr/share/udhcpc/default.script
 
   rm $pkgdir/bin/sh # prevent conflict with 'bash'
   for f in dmesg kill more mount mountpoint tar umount dnsdomainname hostname \
@@ -63,8 +72,13 @@ package() {
 
   # prevent conflict with psmisc
   for f in killall pstree ; do rm $pkgdir/usr/bin/$f ; done
+
+  # prevent conflict with sysvinit
+  for f in halt init poweroff reboot runlevel ; do rm $pkgdir/sbin/$f ; done
 }
 
 md5sums=('e025414bc6cd79579cc7a32a45d3ae1c'
          '36b485edc83f95c66c3791ca3030ac97'
-         'a4f9fd450912857777a3c71cf6aab144')
+         'a4f9fd450912857777a3c71cf6aab144'
+         '552ff4c55908d0bfd6563618e8be3321'
+         '0869726c3fdd7a10f9ea5b368a9474a0')
