@@ -7,6 +7,13 @@ u|a|d) mode=$1 ;;
 *) echo "Usage:$(basename $0) <a/u/d> -- a:any u:update d:deploy" ; exit 1 ;;
 esac
 
+SSH="ssh -p80"
+SCP="scp -P80"
+if [ -x /usr/bin/dbclient ] ; then
+  SSH="dbclient -p80 -i ~/.ssh/id_rsa -t"
+  SCP="scp -i ~/.ssh/id_rsa -P80"
+fi
+
 split_pkgname_pipe() {  # split x-x-1.3-1.x -> x-x 1.3-1.x
   # support forms: n-1 n-1-1 n-1-1-x86_64
   #[ $opt_v != 0 ] && echo "dbg:split_pkgname_pipe $*" >&2
@@ -45,15 +52,15 @@ for f in $FILES ; do
   fi
   read name ver < <(basename $f .pkg.tar.xz|split_pkgname_pipe)
   echo "To t: $f $name"
-  echo scp -i ~/.ssh/id_rsa -P80 "$f" t:web/sh4twbox
-  scp -i ~/.ssh/id_rsa -P80 $f t:web/sh4twbox
+  echo $SCP "$f" t:web/sh4twbox
+  $SCP $f t:web/sh4twbox
   if [ $mode = u ] ; then
-    echo dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/update_repo.sh
-    dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/update_repo.sh "$f"
+    echo $SSH t web/sh4twbox/update_repo.sh
+    $SSH t web/sh4twbox/update_repo.sh "$f"
   else
-    echo dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/deploy.sh "$f" $name
-    dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/deploy.sh "$f" $name
+    echo $SSH t web/sh4twbox/deploy.sh "$f" $name
+    $SSH t web/sh4twbox/deploy.sh "$f" $name
   fi
-  echo dbclient -p80 -i ~/.ssh/id_rsa -t t rm -f web/sh4twbox/$f.ok
-  dbclient -p80 -i ~/.ssh/id_rsa -t t rm -f web/sh4twbox/$f.ok
+  echo $SSH t rm -f web/sh4twbox/$f.ok
+  $SSH t rm -f web/sh4twbox/$f.ok
 done
