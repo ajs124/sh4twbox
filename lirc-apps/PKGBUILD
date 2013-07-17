@@ -1,0 +1,36 @@
+# Maintainer: Rexct <rexct1 at gmail dot com>
+pkgname=lirc-apps
+pkgprefix=stlinux23-sh4
+pkgver=0.8.2
+pkgrel=16
+pkgdesc="Linux Infrared Remote Control Application"
+arch=('sh4')
+url="http://www.lirc.org/"
+license=('GPL2')
+groups=(lirc)
+depends=()
+optdepends=()
+makedepends=('rpmextract')
+provides=()
+conflicts=()
+backup=()
+options=('!ccache')
+install=
+changelog=$pkgname.changelog
+source=($pkgprefix-$pkgname-$pkgver-$pkgrel.sh4.rpm::http://ftp.stlinux.com/pub/stlinux/2.3/STLinux/sh4/${pkgprefix}-${pkgname}-${pkgver}-${pkgrel}.sh4.rpm 
+        lircd.conf)
+noextract=()
+md5sums=('c2731525206c8208e0109900303cc3db'
+         'c6a6babd0c9137b6370e5b628245ba4f')
+         
+build() {
+cd "${srcdir}"
+rpmextract.sh $pkgprefix-$pkgname-$pkgver-$pkgrel.sh4.rpm
+}
+
+package() {
+  cd "${srcdir}"
+  cp -dr --no-preserve=ownership opt/STM/STLinux-2.3/devkit/sh4/target/{etc,usr} "${pkgdir}"/
+  rm "${pkgdir}"/etc/lircd.conf
+  cp --no-preserve=ownership lircd.conf "${pkgdir}"/etc/lircd.conf
+}
