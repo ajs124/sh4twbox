@@ -1,0 +1,36 @@
+# Maintainer: Rexct <rexct1 at gmail dot com>
+pkgname=apr
+pkgver=1.4.6
+pkgrel=1
+pkgdesc="The Apache Portable Runtime"
+arch=('sh4')
+url="http://apr.apache.org/"
+license=('APACHE')
+groups=()
+depends=()
+optdepends=()
+makedepends=()
+provides=()
+conflicts=('')
+backup=()
+options=('')
+install=
+changelog=$pkgname.changelog
+source=($pkgname-$pkgver.tar.gz::http://apache.cdpa.nsysu.edu.tw/${pkgname}/${pkgname}-${pkgver}.tar.gz )
+noextract=()
+md5sums=('76cc4457fbb71eefdafa27dba8f511fb')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  ./configure --prefix=/usr/local/apr 
+}
+
+check() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make -j1 check
+}
+
+package() {
+  cd "${srcdir}/apr-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+}

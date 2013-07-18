@@ -1,0 +1,36 @@
+# Maintainer: Rexct <rexct1 at gmail dot com>
+pkgname=apr-util
+pkgver=1.5.2
+pkgrel=1
+pkgdesc="The Apache Portable Runtime"
+arch=('sh4')
+url="http://apr.apache.org/"
+license=('APACHE')
+groups=()
+depends=('apr' 'gdbm' 'expat' 'db' 'libldap' )
+optdepends=('unixodbc')
+makedepends=()
+provides=()
+conflicts=()
+backup=()
+options=('!libtool')
+install=
+changelog=$pkgname.changelog
+source=($pkgname-$pkgver.tar.gz::http://mirrors.cnnic.cn/apache/apr/${pkgname}-${pkgver}.tar.gz )
+noextract=()
+md5sums=('eb682cfb8642babba427a4fb391b15e8')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  ./configure --prefix=/usr/local/apr-util --with-apr=/usr/local/apr 
+}
+
+check() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make -j1 check
+}
+
+package() {
+  cd "${srcdir}/apr-util-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+}
