@@ -1,0 +1,38 @@
+# Maintainer: Rexct <rexct1 at gmail dot com>
+pkgname=mysql
+pkgver=5.1.70
+pkgrel=1
+pkgdesc="A fast SQL database server"
+arch=('sh4')
+url="https://www.mysql.com/products/community/"
+license=('GPL')
+backup=(etc/mysql/my.cnf)
+groups=()
+depends=()
+optdepends=()
+makedepends=('openssl' 'zlib')
+provides=("mariadb=$pkgver")
+conflicts=('mariadb')
+options=('!libtool' 'emptydirs')
+changelog=$pkgname.changelog
+source=($pkgname-$pkgver.tar.gz::http://mysql.mirrors.pair.com/Downloads/MySQL-5.1/${pkgname}-${pkgver}.tar.gz )
+noextract=()
+md5sums=('f1d585938c75958fd82eac0564cf50b7')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  CC=/usr/bin/gcc ./configure --prefix=/usr/local/mysql --localstatedir=/usr/local/mysql/data --with-extra-charsets=utf8,big5 
+}
+
+check() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make -j1 check
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+#  mkdir ${pkgdir}/usr/local/mysql
+  mkdir ${pkgdir}/usr/local/mysql/data
+  mkdir ${pkgdir}/usr/local/mysql/var
+}
