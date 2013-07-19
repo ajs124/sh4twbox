@@ -1,5 +1,5 @@
 # Maintainer: Rexct <rexct1 at gmail dot com>
-pkgname=apache
+pkgname=apache24
 pkgver=2.4.4
 pkgrel=1
 pkgdesc="A high performance Unix-based HTTP server"
@@ -13,11 +13,10 @@ backup=(etc/httpd/conf/httpd.conf
         etc/logrotate.d/httpd)
 groups=()
 depends=('openssl' 'zlib' 'apr-util' 'pcre' )
-optdepends=('unixodbc')
+optdepends=('lynx: apachectl status')
 makedepends=('gcc')
-provides=()
-conflicts=()
-backup=()
+provides=('apache')
+conflicts=('apache')
 options=('!libtool')
 install=
 changelog=$pkgname.changelog
