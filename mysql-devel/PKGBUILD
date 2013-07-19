@@ -1,0 +1,32 @@
+# Maintainer: Rexct <rexct1 at gmail dot com>
+pkgname=mysql-devel
+pkgver=5.0.51a
+pkgrel=1
+pkgdesc="MySQL development library"
+arch=('sh4')
+url="https://www.mysql.com/products/community/"
+license=('GPL')
+groups=()
+depends=()
+optdepends=()
+makedepends=()
+provides=()
+conflicts=('')
+backup=()
+options=('!ccache')
+install=
+changelog=$pkgname.changelog
+source=($pkgname-$pkgver-$pkgrel.fc9.sh4.rpm::http://www.sh-linux.ssdev.jp/rpm-fc9/RPMS/sh4/${pkgname}-${pkgver}-${pkgrel}.fc9.sh4.rpm )
+noextract=()
+md5sums=('951170ce9678568d8aa7241e2c8af2df')
+
+build() {
+cd "${srcdir}"
+#rpmextract.sh $pkgname-$pkgver-$pkgrel.sh4.rpm
+rpm2cpio $pkgname-$pkgver-$pkgrel.sh4.rpm | bsdtar -xf -
+}
+
+package() {
+  cd "${srcdir}"
+  cp -dr --no-preserve=ownership usr "${pkgdir}"/
+}
