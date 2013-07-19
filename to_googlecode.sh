@@ -5,10 +5,21 @@ go(){
   "$@"
 }
 
-cd $(dirname $0)
-for f in `ls *.pkg.tar.xz` sh4twbox.db ; do
-  if [ ! -r  $f.ok ] ; then
+for f in *.pkg.tar.xz ; do
+  if [ ! -r  "$f.ok" ] ; then
     go googlecode_upload.py -s $f -p sh4twbox -l Type-Package,ArchLinux $f
-    md5sum $f > $f.ok
+    sha1sum $f > $f.ok
+  fi
+done
+for f in *.txz ; do
+  if [ ! -r  "$f.ok" ] ; then
+    go googlecode_upload.py -s $f -p sh4twbox -l Type-Package $f
+    sha1sum $f > $f.ok
+  fi
+done
+for f in sh4twbox.db ; do
+  if [ ! -r  $f.ok ] ; then
+    go googlecode_upload.py -s $f -p sh4twbox -l Type-Index,MajorIndex,ArchLinux $f
+    sha1sum $f > $f.ok
   fi
 done
