@@ -6,10 +6,7 @@ pkgdesc="An HTML-embedded scripting language"
 arch=('sh4')
 url="http://www.php.net"
 license=('PHP')
-backup=('etc/php/php.ini'
-        'etc/httpd/conf/extra/php5_module.conf'
-        'etc/php/php-fpm.conf'
-        'etc/php/pear.conf')
+backup=('usr/local/php/php.ini')
 groups=()
 depends=('libxml2' 'libmcrypt')
 optdepends=('mysql-devel')
