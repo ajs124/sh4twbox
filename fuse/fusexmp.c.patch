@@ -1,0 +1,10 @@
+--- fuse-2.9.3/example/fusexmp.c.old	2013-08-08 13:52:37.745547727 +0800
++++ fuse-2.9.3/example/fusexmp.c	2013-08-08 13:53:02.515283868 +0800
+@@ -10,6 +10,7 @@
+ */
+ 
+ #define FUSE_USE_VERSION 26
++# define AT_SYMLINK_NOFOLLOW    0x100   /* Do not follow symbolic links.  */
+ 
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
