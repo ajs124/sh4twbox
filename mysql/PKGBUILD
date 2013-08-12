@@ -13,26 +13,35 @@ optdepends=()
 makedepends=('openssl' 'zlib')
 provides=("mariadb=$pkgver")
 conflicts=('mariadb')
-options=('!libtool' 'emptydirs')
-changelog=$pkgname.changelog
+options=('emptydirs')
+changelog=
+install=mysql.install
 source=($pkgname-$pkgver.tar.gz::http://mysql.mirrors.pair.com/Downloads/MySQL-5.1/${pkgname}-${pkgver}.tar.gz )
-noextract=()
-md5sums=('f1d585938c75958fd82eac0564cf50b7')
+
+md5sums=('2676756a2560ece1422089e13a8d3b11')
 
 build() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  CC=/usr/bin/gcc ./configure --prefix=/usr/local/mysql --localstatedir=/usr/local/mysql/data --with-extra-charsets=utf8,big5 
+cd "${srcdir}/${pkgname}-${pkgver}"
+CC=/usr/bin/gcc ./configure --prefix=/usr \
+                            --datadir=/usr/share \
+                            --localstatedir=/var/lib/mysql \
+                            --infodir=/usr/share/mysql/docs \
+                            --libdir=/usr/lib \
+                            --mandir=/usr/share/man \
+                            --sysconfdir=/etc/mysql \
+                            --with-extra-charsets=utf8,big5
 }
 
 check() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  make -j1 check
+cd "${srcdir}/${pkgname}-${pkgver}"
+make -j1 check
 }
 
 package() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  make DESTDIR="${pkgdir}" install
-#  mkdir ${pkgdir}/usr/local/mysql
-  mkdir ${pkgdir}/usr/local/mysql/data
-  mkdir ${pkgdir}/usr/local/mysql/var
+cd "${srcdir}/${pkgname}-${pkgver}"
+make DESTDIR="${pkgdir}" install
+# mkdir ${pkgdir}/usr/local/mysql
+mkdir -p ${pkgdir}/var/lib/mysql
+mkdir -p ${pkgdir}/usr/share/mysql
+install -Dm644 "${pkgdir}"/usr/share/mysql/my-medium.cnf "${pkgdir}"/etc/mysql/my.cnf
 }
