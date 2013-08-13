@@ -15,7 +15,7 @@ conflicts=('')
 backup=()
 options=('!ccache')
 install=
-changelog=$pkgname.changelog
+changelog=
 source=($pkgname-$pkgver-$pkgrel.fc9.sh4.rpm::http://www.sh-linux.ssdev.jp/rpm-fc9/RPMS/sh4/${pkgname}-${pkgver}-${pkgrel}.fc9.sh4.rpm )
 noextract=()
 md5sums=('951170ce9678568d8aa7241e2c8af2df')
@@ -23,7 +23,7 @@ md5sums=('951170ce9678568d8aa7241e2c8af2df')
 build() {
 cd "${srcdir}"
 #rpmextract.sh $pkgname-$pkgver-$pkgrel.sh4.rpm
-rpm2cpio $pkgname-$pkgver-$pkgrel.sh4.rpm | bsdtar -xf -
+rpm2cpio $pkgname-$pkgver-$pkgrel.fc9.sh4.rpm | bsdtar -xf -
 }
 
 package() {
