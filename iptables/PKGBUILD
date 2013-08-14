@@ -1,0 +1,74 @@
+# Maintainer:  Rexct < rexct1 at gmail dot com >
+# Contributor: Ronald van Haren <ronald.archlinux.org>
+# Contributor: Thomas Baechler <thomas@archlinux.org>
+
+pkgname=iptables
+pkgver=1.4.19.1
+pkgrel=1
+pkgdesc='Linux kernel packet control tool'
+arch=('sh4')
+license=('GPL2')
+url='http://www.netfilter.org/projects/iptables/index.html'
+depends=('glibc' 'bash')
+makedepends=('linux-api-headers')
+backup=('etc/xtables/connlabel.conf')
+options=('!libtool')
+source=(http://www.netfilter.org/projects/iptables/files/${pkgname}-${pkgver}.tar.bz2{,.sig}
+        empty.rules
+        simple_firewall.rules
+        empty-filter.rules
+        empty-mangle.rules
+        empty-nat.rules
+        empty-raw.rules
+        empty-security.rules
+        0503-extension_cppflags.patch 
+        kernel__aligned_u64.patch )
+#        iptables.service
+#        ip6tables.service
+#        iptables-flush)
+sha1sums=('566ba23b73403b0e4b4511d35c40124717bba97b'
+          'SKIP'
+          '4dd62f519ffc533031f187e876774e2141bb8b28'
+          '93b7e1dcc6d9b3b98929818c54640a68e56be164'
+          'bf8bc0637b8d8ad3d9125ae86c68f137d33feaeb'
+          'e5d575e660b26595f78d494f7d72f24c4198577a'
+          'fbf5db894f33baf91b20256d24dac3b8cb47e057'
+          'd08cb958b85697004d61aec46bcb5c7f8d72ca43'
+          '646a5f2a01b9dc6067721fc0d7d90304a4fa92fe'
+          'd99dfedcee9d1f9736f67fbf2586e4aaf029df00'
+          'e59c19bb125030206be6443a212815d8e77aab19')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  # use system one
+  rm include/linux/types.h
+
+  patch -Np1 -i ${srcdir}/0503-extension_cppflags.patch
+  patch -Np1 -i ${srcdir}/kernel__aligned_u64.patch
+ ./configure --prefix=/usr \
+     --libexecdir=/usr/lib/iptables --sysconfdir=/etc \
+     --with-xtlibdir=/usr/lib/iptables \
+     --enable-devel --enable-shared \
+     --sbindir=/usr/bin
+  make
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  make DESTDIR="${pkgdir}" install
+
+  cd "${srcdir}"
+  install -D -m644 empty.rules "${pkgdir}"/etc/iptables/empty.rules
+  install -D -m644 simple_firewall.rules "${pkgdir}"/etc/iptables/simple_firewall.rules
+
+  mkdir -p "${pkgdir}"/var/lib/{iptables,ip6tables}
+  install -m644 empty-{filter,mangle,nat,raw,security}.rules "${pkgdir}"/var/lib/iptables
+  install -m644 empty-{filter,mangle,nat,raw,security}.rules "${pkgdir}"/var/lib/ip6tables
+
+  # install systemd files
+#  install -Dm644 ${srcdir}/iptables.service ${pkgdir}/usr/lib/systemd/system/iptables.service
+#  install -Dm644 ${srcdir}/ip6tables.service ${pkgdir}/usr/lib/systemd/system/ip6tables.service
+#  install -Dm755 ${srcdir}/iptables-flush ${pkgdir}/usr/lib/systemd/scripts/iptables-flush
+}
