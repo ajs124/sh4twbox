@@ -1,0 +1,30 @@
+# Maintainer: Rexct < rexct1 at google dot com >
+# Contributor:  Giovanni Scafora <giovanni@archlinux.org> 
+# Contributor: kastor <kastor@fobos.org.ar>
+
+pkgname=libupnp
+pkgver=1.6.18
+pkgrel=1
+pkgdesc="Portable Open Source UPnP Development Kit"
+arch=('sh4')
+url="http://pupnp.sourceforge.net/"
+license=('BSD')
+depends=('glibc')
+makedepends=('pkgconfig')
+options=()
+source=("http://nchc.dl.sourceforge.net/project/pupnp/libUPnP%20{pkgver}/${pkgname}-${pkgver}.tar.bz2")
+md5sums=('11c6484fd2e2927bf3b8d8108407ca56')
+
+build() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  ./configure --prefix=/usr
+  make
+}
+
+package() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+
+  make DESTDIR=${pkgdir} install
+  install -Dm644 LICENSE ${pkgdir}/usr/share/licenses/custom/${pkgname}/LICENSE
+}
