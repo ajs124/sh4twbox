@@ -1,0 +1,54 @@
+# Maintainer: Rexct < rexct1 at gmail dot com >
+# Contributor: Sergej Pupykin <pupykin.s+arch@gmail.com>
+# Contributor: Kessia 'even' Pinheiro <kessiapinheiro at gmail.com>
+# Contributor: kastor <kastor@fobos.org.ar>
+
+pkgname=ushare
+pkgver=1.1a
+pkgrel=19
+pkgdesc="A free UPnP A/V Media Server for Linux"
+url="http://ushare.geexbox.org"
+license=('GPL2')
+arch=('sh4')
+depends=('libupnp' 'sudo')
+#'libdlna'
+backup=('etc/ushare/ushare.conf'
+	'etc/conf.d/ushare')
+install=ushare.install
+source=("http://ushare.geexbox.org/releases/${pkgname}-${pkgver}.tar.bz2"
+	"upnp-build-fix.patch"
+	"ushare-config.patch"
+	"segfault.patch"
+	)
+#"ushare.service"
+md5sums=('5bbcdbf1ff85a9710fa3d4e82ccaa251'
+         '137f62d98829f3c08cfd175c620d76aa'
+         '5243475c0cebc5db49296b2f3691085b'
+         '9ef9db407a2865773a0023cd4b0a1c8b')
+
+build() {
+  cd ${srcdir}/${pkgname}-${pkgver}
+  sed -i -e \
+    "s%^INSTALL=\"/usr/bin/install -c\"$%INSTALL=\"$(which install) -c\"%" \
+    configure
+  patch -p1 <$srcdir/upnp-build-fix.patch
+  patch -p1 <$srcdir/ushare-config.patch
+  patch -p1 <$srcdir/segfault.patch
+  ./configure --prefix=/usr --sysconfdir=/etc/ushare 
+#--enable-dlna --with-libdlna-dir=/usr/include/libavformat
+  make
+}
+
+package() {
+  cd ${srcdir}/${pkgname}-${pkgver}
+  make DESTDIR=${pkgdir} install
+  rm -rf ${pkgdir}/etc/${pkgname}/init.d
+  install -dm0755 ${pkgdir}/etc/conf.d/
+  cat >${pkgdir}/etc/conf.d/ushare <<EOF
+#PARAMS="-c /tmp -i eth0"
+PARAMS=
+USHARE_USER=ushare
+EOF
+  install -Dm0644 src/ushare.1 $pkgdir/usr/share/man/man1/ushare.1
+#  install -Dm0644 $srcdir/ushare.service $pkgdir/usr/lib/systemd/system/ushare.service
+}
