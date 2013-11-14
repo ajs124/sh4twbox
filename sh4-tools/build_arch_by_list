@@ -1,0 +1,144 @@
+#!/bin/bash
+# vim:et sw=2 ts=2 ai syntax=sh:
+set -e -u
+[ $# -ne 1 ] && echo "Usage:$(basename $0) <pkgname>" && exit 1
+
+. $(dirname $(realpath $0))/env
+repoany="$repohost:$dirany"
+repotest="$repohost:$dirtest"
+listpath=$(pwd)
+opt_conf=""
+[ `uname -m` = sh4 ] && opt_conf="--config /etc/pacman.src.conf"
+list_f=${listpath:-}/$1.makelist
+
+go() {
+  echo "  *** $@"
+  "$@"
+}
+echoerr() { 
+  echo "$@" 1>&2;
+}
+remove_old() {
+  local line old_ver new_ver
+  while read line ; do
+    if [ "$line" != "${line# *}" ] ;then
+      echoerr "Err: strange line $line"
+      exit 1
+    fi
+    new_ver=`pacman $opt_conf -Si $line 2>/dev/null |grep '^Version'|awk '{print $3}'`
+    old_ver=`pacman $opt_conf -Qi $line 2>/dev/null |grep '^Version'|awk '{print $3}'`
+    echo "line=$line new_ver=$new_ver old_ver=$old_ver"
+    if [ -z "$old_ver" ] || [ "$(vercmp $new_ver $old_ver)" = "1" ] ; then
+      echo "$line # $old_ver->$new_ver" >> $list_f
+    fi
+  done
+}
+chk_updated() { # <pkgname>
+  local new_ver old_ver srv_ver
+  new_ver=`pacman $opt_conf -Si $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
+  old_ver=`pacman $opt_conf -Qi $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
+  srv_ver=`pacman -Si $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
+  echo "chk_updated $1 new:$new_ver old:$old_ver srv:$srv_ver"
+  if [ -z "$old_ver" ] ; then # package not installed
+    if [ -n "$srv_ver" ] && [ $(vercmp $srv_ver $new_ver) != "-1" ] ; then
+      if [ "$(vercmp $new_ver $srv_ver)" = 1 ] ; then
+        return 1
+      else
+        go yaourt -S --force --noconfirm $1
+      fi
+    else
+      return 1
+    fi
+  else
+    if [ -n "$srv_ver" ] && [ $(vercmp $srv_ver $new_ver) != "-1" ] ; then
+      case "$(vercmp $new_ver $srv_ver)" in
+        1) return 1;;
+        0) return 0;;
+        *) go yaourt -S --force --noconfirm $1;;
+      esac
+    else
+      return 1
+    fi
+  fi
+}
+build_pkg() { # <pkgname>
+  local url file name="${1:-}"
+  [ -d ../sh4-$name ] && echo "##Warn:skip Build sh4-$name" && return 0
+  echo "## Build $name"
+  url=$(pacman -Sp $opt_conf $name 2>/dev/null | head -1)
+  file=$(basename $url)
+  case "$file" in
+  *-any.pkg.*)
+    echo "### get from any repo $name"
+    go wget $url -O $file.part
+    mv $file.part $file
+    ;;
+  *)
+    if [ ! -d ../$name ] ; then
+      cd .. ; go yaourt -G $opt_conf $name
+      cd $listpath
+    fi
+    if [ ! -d ../$name ] ; then
+      echo "Err: ../$name not exist, use .makelist instead"
+    fi
+    cd ../$name
+    go $listpath/get_local_src
+    go makepkg -AsL --noconfirm --needed     
+    file=$(ls *.pkg.tar.*z)
+  esac
+  go yaourt -U --noconfirm $file
+  $listpath/upd_arch_repo $file
+  go yaourt -Syy --noconfirm
+  cd $listpath
+}
+#rm -f $list_f
+if [ ! -r $list_f ] ; then
+  rc=0
+  echo "Generating $list_f ..."
+  pactree $opt_conf -slu $1 | grep -v -e '^lib32' -e multilib | tac > $list_f.1
+  cat $list_f.1 |  remove_old # >  $list_f
+  echo "$list_f generated"
+fi
+echo "# building list $list_f"
+cat $list_f | grep -v '^#' | while read line ; do
+  name=${line%% *}
+  if chk_updated $name ; then
+    continue
+  fi
+  if [ -r $listpath/$name.makelist ] ; then
+    $0 $name
+    continue
+  fi
+  build_pkg $name
+done
+echo "# done"
+exit 99
+
+while false ; do
+    echo "*** checking $name is any-arch in arch repository?"
+    file=`pacman -Sp --config /etc/pacman.src.conf $name 2>/dev/null | head -1 | awk '{print $1}'`
+    if [ -n "$file" ] ; then
+      sname="$(basename $file)"
+      if [[ "$sname" = *"any.pkg.tar.xz" ]]; then
+        echo "*** geting any arch pkg file $name"
+        mkdir -p ~/abs/local/$name
+        cd ~/abs/local/$name
+        go wget $file -O $sname.part
+        mv $sname.part $sname
+        go scp -i ~/.ssh/id_rsa -P80 $sname t:web/sh4twbox
+        go dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/update_repo.sh "$sname"
+        go yaourt -Syf --noconfirm $name
+        continue
+      fi
+    fi
+    cd / # prevent yaourt check directory name
+    echo "*** building $name"
+    cd ~/abs/local
+    go yaourt --config /etc/pacman.src.conf -G $name
+    cd $name
+    echo "makepkg -Asd --nocheck --skippgpcheck --skipinteg # if failed"
+    go makepkg -As --nocheck --skippgpcheck --skipinteg -L
+    ../sscp.sh u
+    go yaourt -Syf --noconfirm $name
+  fi
+done

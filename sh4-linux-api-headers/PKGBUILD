@@ -1,0 +1,48 @@
+# Maintainer: Daniel YC Lin <dlin.tw at gmail>
+# toolchain build order: linux-api-headers->glibc->binutils->gcc->binutils->glibc
+# shpkg -S stlinux23-sh4-linux-kernel-headers
+
+pkgname=sh4-linux-api-headers
+pkgver=2.6.32.59_stm24_0211
+pkgrel=1.1
+pkgdesc="Kernel headers sanitized for use in userspace"
+arch=(sh4)
+provides=('linux-api-headers=2.6.32.59')
+conflicts==('linux-api-headers')
+url="http://sh4twbox.googlecode.com"
+license=('GPL2')
+source=http://github.com/dlintw/kernel-pdk7105/archive/twpda.tar.gz
+#source=('repo::git+https://github.com/dlintw/kernel-pdk7105#twpda' )
+#source=('repo::git://github.com/dlintw/kernel-pdk7105#twpda' )
+makedepends=('git')
+_dir="kernel-pdk7105-twpda"
+#http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-linux-kernel-headers-${pkgver}_stm24_0211-41.noarch.rpm
+#http://download.stlinux.com/pub/stlinux/2.4/updates/SRPMS/stlinux24-host-kernel-source-sh4-2.6.32.59_stm24_0211-211.src.rpm
+#pkgver() {
+#  cd "$srcdir/repo"
+#  git describe --long | sed -E 's/([^-]*-g)/r\1/;s/-/./g'
+#}
+#package() {
+#  cd "$srcdir/repo"
+#  cp -r opt/STM/STLinux-2.3/devkit/sh4/target/usr $pkgdir
+#}
+build() {
+  cd ${srcdir}/$_dir
+  #[[ $pkgver != $_basever ]] && patch -p1 -i ${srcdir}/patch-${pkgver}
+
+  make mrproper
+  make headers_check
+}
+
+package() {
+  cd ${srcdir}/$_dir
+  make INSTALL_HDR_PATH=${pkgdir}/usr headers_install
+
+  # use headers from libdrm
+  rm -r ${pkgdir}/usr/include/drm
+
+  # clean-up unnecessary files generated during install
+  find ${pkgdir} \( -name .install -o -name ..install.cmd \) -delete
+  rm -f $pkgdir/usr/include/scsi/scsi.h # already in sh4-glibc
+}
+md5sums=('5be5fbe7f14c2f7dd854cace0e475aef')

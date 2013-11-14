@@ -3,9 +3,6 @@
 # /etc/rc.local: Local multi-user start-up script.
 #
 
-# http://www.raspberrypi.org/phpBB3/viewtopic.php?t=7767&p=94288
-ln -s /proc/self/fd /dev/fd
-
 # sample for dhcp
 ifconfig eth0 up
 busybox udhcpc > /var/log/udhcpc.log 2>&1 &

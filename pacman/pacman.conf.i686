@@ -19,7 +19,7 @@ HoldPkg     = pacman glibc
 #XferCommand = /usr/bin/wget --passive-ftp -c -O %o %u
 #CleanMethod = KeepInstalled
 #UseDelta    = 0.7
-Architecture = sh4
+Architecture = auto
 
 # Pacman won't upgrade packages listed in IgnorePkg and members of IgnoreGroup
 #IgnorePkg   =
@@ -32,13 +32,12 @@ Architecture = sh4
 #UseSyslog
 #Color
 #TotalDownload
-#CheckSpace
+CheckSpace
 #VerbosePkgLists
 
 # By default, pacman accepts packages signed by keys that its local keyring
 # trusts (see pacman-key and its man page), as well as unsigned packages.
-#SigLevel    = Required DatabaseOptional
-SigLevel = Never
+SigLevel    = Required DatabaseOptional
 LocalFileSigLevel = Optional
 #RemoteFileSigLevel = Required
 
@@ -68,29 +67,21 @@ LocalFileSigLevel = Optional
 # The testing repositories are disabled by default. To enable, uncomment the
 # repo name header and Include lines. You can add preferred servers immediately
 # after the header, and they will be used before the default mirrors.
-#[archtest]
-#Server = http://sh4:8000/mirror/archtest
+
 #[testing]
 #Include = /etc/pacman.d/mirrorlist
 
-[sh4twbox]
-Server = http://sh4twbox.googlecode.com/files
+[core]
+Include = /etc/pacman.d/mirrorlist
 
-[archany]
-Server = http://sh4twbox.googlecode.com/files
-#Server = http://sh4:8000/mirror/archany
-
-#[core]
-#Include = /etc/pacman.d/mirrorlist
-
-#[extra]
-#Include = /etc/pacman.d/mirrorlist
+[extra]
+Include = /etc/pacman.d/mirrorlist
 
 #[community-testing]
 #Include = /etc/pacman.d/mirrorlist
 
-#[community]
-#Include = /etc/pacman.d/mirrorlist
+[community]
+Include = /etc/pacman.d/mirrorlist
 
 # An example of a custom package repository.  See the pacman manpage for
 # tips on creating your own repositories.

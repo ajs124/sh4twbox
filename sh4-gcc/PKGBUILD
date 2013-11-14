@@ -1,0 +1,23 @@
+# Maintainer: Daniel YC Lin <dlin.tw at gmail>
+
+pkgname=sh4-gcc
+pkgver=4.7.3
+pkgrel=129.5
+pkgdesc="STLinux The GNU Compiler Collection"
+conflicts=gcc
+depends=(libmpc cloog)
+provides=('gcc=4.7.3')
+arch=(sh4)
+options=('staticlibs')
+install=gcc.install
+license=('GPL' 'LGPL' 'FDL' 'custom')
+url="http://gcc.gnu.org"
+source=(http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-gcc-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-g++-4.7.3-129.sh4.rpm)
+
+package() {
+  cp -r opt/STM/STLinux-2.4/devkit/sh4/target/usr $pkgdir
+  #rm $pkgdir/usr/lib/libssp.so*
+}
+md5sums=('af9046590025ac60f9beaa226a7e8318'
+         '09fef787aec4eb80453a7c3a5c030acd')

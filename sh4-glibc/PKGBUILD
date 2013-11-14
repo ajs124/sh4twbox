@@ -1,0 +1,61 @@
+# Maintainer: Daniel YC Lin <dlin.tw at gmail>
+pkgname=sh4-glibc
+pkgver=2.10.2
+pkgrel=43.6
+pkgdesc="STLinux GNU C Library"
+arch=(sh4)
+license=('GPL' 'LGPL')
+groups=('base')
+provides=('glibc=2.10.2')
+conflicts=('glibc')
+depends=('linux-api-headers' 'tzdata' 'filesystem')
+makedepends=('gcc')
+backup=(etc/locale.gen
+        etc/nscd.conf)
+options=('!strip' 'staticlibs')
+install=glibc.install
+url="http://gcc.gnu.org"
+source=(
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-2.10.2-43.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-debuginfo-2.10.2-43.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-dev-2.10.2-43.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-i18ndata-2.10.2-43.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-locales-2.10.2-43.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-glibc-nscd-2.10.2-43.sh4.rpm
+nscd.service
+nscd.tmpfiles
+locale.gen.txt
+locale-gen
+)
+
+package() {
+  cp -r opt/STM/STLinux-2.4/devkit/sh4/target/* $pkgdir
+  rm -f ${pkgdir}/etc/ld.so.{cache,conf}
+  install -dm755 ${pkgdir}/usr/lib/{locale,systemd/system,tmpfiles.d}
+  install -m644 ${srcdir}/nscd.service ${pkgdir}/usr/lib/systemd/system
+  install -m644 ${srcdir}/nscd.tmpfiles ${pkgdir}/usr/lib/tmpfiles.d/nscd.conf
+  rm -fr $pkgdir/usr/share/zoneinfo # in pkg tzdata
+#  rm -f $pkgdir/etc/ld.so.conf}  # in pkg filesystem
+  rm -f $pkgdir/etc/{host.conf,nsswitch.conf}  # already in filesystem
+  #rm -f $pkgdir/usr/include/scsi/scsi.h # already in sh4-linux-api-headers
+
+  install -m755 ${srcdir}/locale-gen ${pkgdir}/usr/bin
+
+  # temporary symlink
+#  ln -s ../../sbin/ldconfig ${pkgdir}/usr/bin/ldconfig
+
+  # create /etc/locale.gen
+  install -m644 ${srcdir}/locale.gen.txt ${pkgdir}/etc/locale.gen
+
+}
+
+md5sums=('ebd31bdc34e94d8036a4dbb174a43497'
+         '429da0233ad5a2fced60f1f1211ffe0d'
+         'b43eb750cc5f28ad7a32b47ffeeb79bb'
+         '497c344aeb0ae57637d3ad351829a3a1'
+         '4577a86e1b2b35810ec9c00924a1cccf'
+         '9f58701d5301385cb637d7fdd432b086'
+         'd5fab2cd3abea65aa5ae696ea4a47d6b'
+         'da662ca76e7c8d7efbc7986ab7acea2d'
+         '97bd317d02ed9993b9cf8d47a4258fab'
+         'b5fd017036fb91199ee76f670da8c15b')

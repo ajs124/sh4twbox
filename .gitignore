@@ -1,0 +1,10 @@
+*.o
+*.6
+*.8
+*.swp
+_obj
+_cgo_export.h
+.svn
+.hg
+!.gitignore
+.fslckout

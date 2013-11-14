@@ -6,7 +6,7 @@
 
 pkgname=initscripts
 pkgver=2011.12.1
-pkgrel=1.2
+pkgrel=1.1
 pkgdesc="System initialization/bootup scripts"
 arch=('any')
 url="http://www.archlinux.org"
@@ -36,7 +36,7 @@ package() {
 md5sums=('32ed7ccbe42a174715426712fee043a6'
          '3abfaf26bbd835e2d26e767299270fed'
          '3608a795c16169f5aeaebcba9892e699'
-         '382fc14506d5c9c2e2732d142ccac596'
+         '975dfc93f5ffb26017406a8471658fc5'
          'd214a903b8abc16b1a87015f82436002'
          '5bec0db9da082273a0bff6630531da1b'
          'ff882d06223706aad088694270db8123')
