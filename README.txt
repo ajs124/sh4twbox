@@ -1,6 +1,51 @@
 # vim:et sw=2 ts=2 ai:
 # ref: https://wiki.archlinux.org/index.php/Pacman_Tips
 
+Arch Package for NextVOD Naming Rules
+=====================================
+1. If PKGBUILD is totally different than original's arch, add prefix sh4-. And use *conflicts* and *provides* keyword.
+  eg. sh4-glibc
+
+2. If PKGBUILD could use yaourt -AsL build, don't check it in git repository.
+
+3. If PKGBUILD is a little different than original Arch's, added a
+  sub-replease version. eg. Arch is 1.2-3  then we use 1.2-3.1
+  arch=('i686' 'x86_64' 'sh4')
+  eg. e2fsprogs 1.42.8-2.1
+
+4. For old PKGBUILD.0 it should rename package name to sh4-xxx.
+
+5. For old PKGBUILD.1 or PKGBUILD.2 it should renamed to PKGBUILD.  If that means stage, then use sh4-xxx-stage1.
+
+Arch Package Build Tools
+========================
+1. Setup up common environment variables for sh4-tools::
+
+  cd sh4-tools
+  cp env.tmpl env
+  vi env
+  # on your local web site
+  mkdir www/mirror
+  cd www/mirror
+  mkdir archany archtest src
+  # mapping your home directory www to the web site repository
+
+2. Build a full dependency (eg. pacman)::
+
+  cd sh4-tools
+  ./build_arch_by_list pacman # it will generate pacman.makelist
+  vi pacman.makelist # if you want to mark off some packages.
+
+3. When error occurs, try build one package manually::
+
+  cd xxx
+  ../sh4-tools/get_local_src # get source local mirror/src
+  makepkg -AsL
+  ../sh4-tools/upd_arch_repo xxx.pkg.tar.gz
+
+4. We use pkg.tar.gz format instead of .xz. Because it will save
+  compressing time. It will be repack to .xz on PC for release.
+
 CA key problem
 ==============
 #https://wiki.archlinux.org/index.php/Pacman-key
@@ -42,7 +87,7 @@ tmp:
   opensp: opensp opensp-devel
   ghostscript: ghostscript ghostscript-devel
 
-pacman: 
+pacman:
 fail: kernel systemd libudev device-mapper(lvm2) cryptsetup
 ignore: jfsutils xfsprogs reiserfsprogs pciutils pcmciautils systemd-sysvcompat
 dummy:
@@ -190,7 +235,7 @@ lvm2
   checking for gcc... gcc
   checking whether the C compiler works... yes
   checking for C compiler default output file name... a.out
-  checking for suffix of executables... 
+  checking for suffix of executables...
   checking whether we are cross compiling... no
   checking for suffix of object files... configure: error: in `/home/dlin/abs/local/lvm2/src/LVM2.2.02.98':
   configure: error: cannot compute suffix of object files: cannot compile
@@ -204,9 +249,9 @@ Making all in util
 make[2]: Entering directory `/home/dlin/abs/local/rarian/src/rarian-0.8.1/util'
 gcc -DHAVE_CONFIG_H -I. -I.. -I./../librarian    -O2 -pipe -MT rarian-example.o -MD -MP -MF .deps/rarian-example.Tpo -c -o rarian-example.o rarian-example.c
 mv -f .deps/rarian-example.Tpo .deps/rarian-example.Po
-/bin/sh ../libtool --tag=CC   --mode=link gcc  -O2 -pipe   -o rarian-example rarian-example.o ../librarian/librarian.la 
+/bin/sh ../libtool --tag=CC   --mode=link gcc  -O2 -pipe   -o rarian-example rarian-example.o ../librarian/librarian.la
 mkdir .libs
-gcc -O2 -pipe -o .libs/rarian-example rarian-example.o  ../librarian/.libs/librarian.so 
+gcc -O2 -pipe -o .libs/rarian-example rarian-example.o  ../librarian/.libs/librarian.so
 /usr/bin/ld: .libs/rarian-example: hidden symbol `__sdivsi3_i4i' in /usr/lib/gcc/sh4-linux/4.2.4/libgcc.a(_div_table.o) is referenced by DSO
 /usr/bin/ld: final link failed: Nonrepresentable section on output
 collect2: ld returned 1 exit status
