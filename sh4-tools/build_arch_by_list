@@ -19,76 +19,122 @@ echoerr() {
   echo "$@" 1>&2;
 }
 remove_old() {
-  local line old_ver new_ver
+  local line f
   while read line ; do
     if [ "$line" != "${line# *}" ] ;then
       echoerr "Err: strange line $line"
       exit 1
     fi
-    new_ver=`pacman $opt_conf -Si $line 2>/dev/null |grep '^Version'|awk '{print $3}'`
-    old_ver=`pacman $opt_conf -Qi $line 2>/dev/null |grep '^Version'|awk '{print $3}'`
-    echo "line=$line new_ver=$new_ver old_ver=$old_ver"
-    if [ -z "$old_ver" ] || [ "$(vercmp $new_ver $old_ver)" = "1" ] ; then
-      echo "$line # $old_ver->$new_ver" >> $list_f
-    fi
+    f="$(cmp_version $line)"
+    [ -n "$f" ] && echo "$f" >> $list_f
   done
 }
-chk_updated() { # <pkgname>
-  local new_ver old_ver srv_ver
-  new_ver=`pacman $opt_conf -Si $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
-  old_ver=`pacman $opt_conf -Qi $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
-  srv_ver=`pacman -Si $1 2>/dev/null |grep '^Version'|awk '{print $3}'`
-  echo "chk_updated $1 new:$new_ver old:$old_ver srv:$srv_ver"
-  if [ -z "$old_ver" ] ; then # package not installed
-    if [ -n "$srv_ver" ] && [ $(vercmp $srv_ver $new_ver) != "-1" ] ; then
-      if [ "$(vercmp $new_ver $srv_ver)" = 1 ] ; then
-        return 1
+pkgbuild_ver() { # <pkgname>
+  ( cd ../$1 ; . ./PKGBUILD ; echo "$pkgver-$pkgrel" )
+}
+cmp_version() { # <pkgname>
+  local orgname="$1" name vArch vInst vRepo vPkg
+  name="${orgname#sh4-}"
+  vInst=`pacman $opt_conf -Qi $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+  if [ -n "$vInst" ] ; then
+    if [ "$orgname" = "$name" ] ; then
+      vArch=`pacman $opt_conf -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+      if [ "$(vercmp $vArch $vInst)" = "1" ] ; then
+        vRepo=`pacman -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+        if [ -z "$vRepo" ] ; then
+          echo "$name # $vInst -> $vArch"
+        elif [ "$(vercmp $vArch $vRepo)" = "1" ] ; then
+          echo "$name # $vRepo -> $vArch"
+        fi
+      fi
+    else # orgname is sh4- package
+      vArch=`pacman $opt_conf -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+      vPkg="$(pkgbuild_ver $orgname)"
+      if [ "$(vercmp $vArch $vPkg)" = "1" ] ; then
+        echo "# Warn: $orgname # $vPkg -> $vArch manually"
+      fi
+    fi
+  else # not installed
+    [ -d ../sh4-$orgname ] && orgname="sh4-$name"
+    vRepo=`pacman -Si $orgname 2>/dev/null |grep '^Version'|awk '{print $3}'`
+    if [ "$orgname" = "$name" ] ; then
+      vArch=`pacman $opt_conf -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+      if [ -z "$vRepo" ] ; then
+        echo "$name # $vRepo -> $vArch"
       else
-        go yaourt -S --force --noconfirm $1
+        if [ "$(vercmp $vArch $vRepo)" = 1 ] ; then
+          echo "$name # $vRepo -> $vArch"
+        else
+          go yaourt -S --asdeps --needed --force --noconfirm $name
+        fi
       fi
     else
-      return 1
-    fi
-  else
-    if [ -n "$srv_ver" ] && [ $(vercmp $srv_ver $new_ver) != "-1" ] ; then
-      case "$(vercmp $new_ver $srv_ver)" in
-        1) return 1;;
-        0) return 0;;
-        *) go yaourt -S --force --noconfirm $1;;
-      esac
-    else
-      return 1
+      vArch=`pacman $opt_conf -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+      if [ -z "$vRepo" ] ; then
+        echo "$orgname # $vRepo -> $vArch"
+      else
+        go yaourt -S --asdeps --needed --force --noconfirm $orgname
+        vPkg="$(pkgbuild_ver $orgname)"
+        if [ "$(vercmp $vArch $vPkg)" = "1" ] ; then
+          echo "# Warn: $orgname # $vPkg -> $vArch manually"
+        fi
+      fi
     fi
   fi
 }
 build_pkg() { # <pkgname>
-  local url file name="${1:-}"
-  [ -d ../sh4-$name ] && echo "##Warn:skip Build sh4-$name" && return 0
-  echo "## Build $name"
-  url=$(pacman -Sp $opt_conf $name 2>/dev/null | head -1)
-  file=$(basename $url)
-  case "$file" in
-  *-any.pkg.*)
-    echo "### get from any repo $name"
-    go wget $url -O $file.part
-    mv $file.part $file
-    ;;
-  *)
-    if [ ! -d ../$name ] ; then
-      cd .. ; go yaourt -G $opt_conf $name
-      cd $listpath
-    fi
-    if [ ! -d ../$name ] ; then
-      echo "Err: ../$name not exist, use .makelist instead"
-    fi
+  local url file name="${1:-}" shortname vRepo vPkg v
+  shortname=${name#sh4-}
+  if [ "$name" != "$shortname" ] ; then
+    vRepo=`pacman -Si $name 2>/dev/null |grep '^Version'|awk '{print $3}'`
+    if [ -n "$vRepo" ] ; then
+      vPkg="$(pkgbuild_ver $name)"
+      case "$(vercmp $vPkg $vRepo)" in
+      1) echo "## Build $name $vRepo -> $vPkg" ;;
+      *) echo "## skip $name" ; return 0 ;;
+      esac
+    else
+      echo "## Build $name # $vPkg"
+    fi 
     cd ../$name
     go $listpath/get_local_src
-    go makepkg -AsL --noconfirm --needed     
+    go makepkg -sL --noconfirm --needed     
     file=$(ls *.pkg.tar.*z)
-  esac
-  go yaourt -U --noconfirm $file
+  else
+    echo "## Build $name"
+    url=$(pacman -Sp $opt_conf $shortname 2>/dev/null | head -1)
+    file=$(basename $url)
+    case "$file" in
+    *-any.pkg.*)
+      echo "### get from any repo $name"
+      go wget $url -O $file.part
+      mv $file.part $file
+      ;;
+    *)
+      if [ -d ../$name ] ; then
+        vArch=`pacman $opt_conf -Si $shortname 2>/dev/null |grep '^Version'|awk '{print $3}'`
+        vPkg="$(pkgbuild_ver $name)"
+        if [ "$(vercmp $vArch $vPkg)" = "1" ] ; then
+          cd .. ; go yaourt -G $opt_conf $name
+          cd $listpath
+        fi
+      else
+        cd .. ; go yaourt -G $opt_conf $name
+        cd $listpath
+      fi
+      if [ ! -d ../$name ] ; then
+        echo "Err: ../$name not exist, use .makelist instead"
+      fi
+      cd ../$name
+      go $listpath/get_local_src
+      go makepkg -AsL --noconfirm --needed     
+      file=$(ls *.pkg.tar.*z)
+      ;;
+    esac
+  fi
+  go yaourt -U --asdeps --noconfirm $file
   $listpath/upd_arch_repo $file
-  go yaourt -Syy --noconfirm
+  go yaourt -Syy --asdeps --noconfirm || true # prevent it return error code 1 as warnning
   cd $listpath
 }
 #rm -f $list_f
@@ -97,12 +143,14 @@ if [ ! -r $list_f ] ; then
   echo "Generating $list_f ..."
   pactree $opt_conf -slu $1 | grep -v -e '^lib32' -e multilib | tac > $list_f.1
   cat $list_f.1 |  remove_old # >  $list_f
-  echo "$list_f generated"
+  echo "# $list_f generated"
 fi
 echo "# building list $list_f"
 cat $list_f | grep -v '^#' | while read line ; do
+  echo "## makelist: $line"
   name=${line%% *}
-  if chk_updated $name ; then
+  v="$(cmp_version $name)"
+  if [ -z "$v" ] || [ -z "${v%%#*}" ] ; then
     continue
   fi
   if [ -r $listpath/$name.makelist ] ; then
@@ -112,33 +160,5 @@ cat $list_f | grep -v '^#' | while read line ; do
   build_pkg $name
 done
 echo "# done"
-exit 99
 
-while false ; do
-    echo "*** checking $name is any-arch in arch repository?"
-    file=`pacman -Sp --config /etc/pacman.src.conf $name 2>/dev/null | head -1 | awk '{print $1}'`
-    if [ -n "$file" ] ; then
-      sname="$(basename $file)"
-      if [[ "$sname" = *"any.pkg.tar.xz" ]]; then
-        echo "*** geting any arch pkg file $name"
-        mkdir -p ~/abs/local/$name
-        cd ~/abs/local/$name
-        go wget $file -O $sname.part
-        mv $sname.part $sname
-        go scp -i ~/.ssh/id_rsa -P80 $sname t:web/sh4twbox
-        go dbclient -p80 -i ~/.ssh/id_rsa -t t web/sh4twbox/update_repo.sh "$sname"
-        go yaourt -Syf --noconfirm $name
-        continue
-      fi
-    fi
-    cd / # prevent yaourt check directory name
-    echo "*** building $name"
-    cd ~/abs/local
-    go yaourt --config /etc/pacman.src.conf -G $name
-    cd $name
-    echo "makepkg -Asd --nocheck --skippgpcheck --skipinteg # if failed"
-    go makepkg -As --nocheck --skippgpcheck --skipinteg -L
-    ../sscp.sh u
-    go yaourt -Syf --noconfirm $name
-  fi
-done
+# makepkg -Asd --nocheck --skippgpcheck --skipinteg -L

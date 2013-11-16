@@ -1,23 +1,55 @@
 # Maintainer: Daniel YC Lin <dlin.tw at gmail>
 
-pkgname=sh4-gcc
+pkgname=(sh4-gcc sh4-gcc-libs)
 pkgver=4.7.3
-pkgrel=129.5
-pkgdesc="STLinux The GNU Compiler Collection"
-conflicts=gcc
-depends=(libmpc cloog)
-provides=('gcc=4.7.3')
+pkgrel=129.7
+pkgdesc="The GNU Compiler Collection (STLinux 2.4)"
 arch=(sh4)
-options=('staticlibs')
-install=gcc.install
 license=('GPL' 'LGPL' 'FDL' 'custom')
 url="http://gcc.gnu.org"
-source=(http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-gcc-4.7.3-129.sh4.rpm
-http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-g++-4.7.3-129.sh4.rpm)
+depends=(binutils libmpc cloog)
+options=('!emptydirs')
+source=(
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-cpp-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-cpp-doc-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-g++-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-gcc-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-gcc-doc-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-libgcc-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-libstdc++-4.7.3-129.sh4.rpm
+http://ftp.stlinux.com/pub/stlinux/2.4/updates/RPMS/sh4/stlinux24-sh4-libstdc++-dev-4.7.3-129.sh4.rpm
+)
 
-package() {
+package_sh4-gcc-libs() {
+  pkgdesc="Runtime libraries shipped by GCC(STLinux 2.4)"
+  groups=('base')
+  depends=('glibc>=2.10')
+  conflicts=gcc-libs
+  provides=("gcc-libs=$pkgver-$pkgrel")
+  install=gcc-libs.install
+  cp -r opt/STM/STLinux-2.4/devkit/sh4/target/lib $pkgdir
   cp -r opt/STM/STLinux-2.4/devkit/sh4/target/usr $pkgdir
-  #rm $pkgdir/usr/lib/libssp.so*
+  rm -rf $pkgdir/usr/{bin,libexec,share,lib/gcc,include}
+  install -d $pkgdir/usr/share/gdb/auto-load/usr/lib
+  mv $pkgdir{,/usr/share/gdb/auto-load}/usr/lib/libstdc++.so.6.0.17-gdb.py
 }
-md5sums=('af9046590025ac60f9beaa226a7e8318'
-         '09fef787aec4eb80453a7c3a5c030acd')
+package_sh4-gcc() {
+  pkgdesc="The GNU Compiler Collection - C and C++ frontends(STLinux 2.4)"
+  depends=("gcc-libs=$pkgver-$pkgrel" 'binutils' 'libmpc' 'cloog')
+  groups=('base-devel')
+  options=('staticlibs')
+  install=gcc.install
+  conflicts=gcc
+  provides=('gcc=4.7.3')
+  cp -r opt/STM/STLinux-2.4/devkit/sh4/target/usr $pkgdir
+  rm -f $pkgdir/usr/lib/* || true
+  rm -rf $pkgdir/usr/share/locale
+}
+md5sums=('05a4c1be8701df097d323622c14b793e'
+         '6be1f6ae2f02b4213778055977fe6a2c'
+         '09fef787aec4eb80453a7c3a5c030acd'
+         'af9046590025ac60f9beaa226a7e8318'
+         '546f69824a1155e6388d9e4563317b76'
+         '9ae72f504df65056f7e7978b68b1ce3f'
+         '531c3206bc033ae62d16c0baa06da8f4'
+         '423111b9dcd3327ca38d307f416f02de')

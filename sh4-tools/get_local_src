@@ -11,10 +11,11 @@ is_remote=0
 
 go() { echo "$@"; "$@";}
 ln_local() { # <name>
-  local d is_found=0
+  local d is_found=0 f
   for d in ${mirrordirs[@]} ; do
-    if [ ! -r $d/$name ] ; then
-      go ln -sf $d/$name .  
+    f="$HOME/$d/$name"
+    if [ -r $f ] ; then
+      go ln -sf $f .  
       is_found=1
       break
     fi
